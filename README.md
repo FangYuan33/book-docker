@@ -52,13 +52,25 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 
 
 ### 操作命令
-- docker version 
-- docker info
-- docker images: 查看镜像
-- docker pull: 从镜像仓库拉取镜像，拉取之后存放在本地接受当前这个Docker实例管理
-- docker search [镜像名称]: 我们可以得到关于这个名称的镜像的列表结果
-- docker inspect [镜像名称]: 查看镜像的详细信息
-- docker rmi [镜像名称/镜像ID]: 删除镜像，名称可以传多个，用空格隔开就好
+
+- 基本操作命令
+  - docker version 
+  - docker info
+  - docker images: 查看镜像
+  - docker pull: 从镜像仓库拉取镜像，拉取之后存放在本地接受当前这个Docker实例管理
+  - docker search [镜像名称]: 我们可以得到关于这个名称的镜像的列表结果
+  - docker inspect [镜像名称]: 查看镜像的详细信息
+  - docker rmi [镜像名称/镜像ID]: 删除镜像，名称可以传多个，用空格隔开就好
+
+- 启停操作命令
+  - docker create --name [容器名称] [镜像名称]: 创建指定镜像的指定容器名的容器
+  - docker start [容器名称]: 启动容器
+  - docker run --name [容器名称] -d [镜像名称]: 将创建容器和启动容器合为一步，-d表示后台运行
+  - docker ps -a: 列出容器中所有的容器，不加-a则只列出运行中的容器
+  - docker stop [容器名称]: 停止容器
+  - docker rm [容器名称]: 删除容器，-f强制删除选项
+  - docker exec -it [容器名称] bash: 启动bash来对容器内的应用进行控制，-i表示保持我们的输入流，
+  只有只用它才能保证控制台程序能够正确识别我们的命令，-t表示启用一个终端，让我们能看到bash的执行结果
 
 ### 安装流程
 ```
