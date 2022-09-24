@@ -50,6 +50,14 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 - tag: 用于表示镜像的版本。当我们在操作中没有具体给出镜像的 tag 时，Docker 会采用 **latest** 作为缺省 tag。
 这带来了一项小便利，就是我们在不需要了解应用程序迭代周期的情况下，可以利用 latest 镜像保持**软件最新版本**的使用。
 
+### 4. 容器网络
+每个容器能够在宿主操作系统的网络环境中独立出来，形成自由的网络设备、IP协议栈、端口套接字、IP路由表和防火墙等，其中有三个比较核心的概念：
+**沙盒、网络和端点**
+
+1. 沙盒: 它的实现隔离了容器网络和宿主机网络，形成了完全独立的容器网络环境
+2. 网络: Docker内部的虚拟子网，能够在容器间进行通讯
+3. 端点: 是位于容器或网络隔离强上的洞，当容器的端点和网络的端点形成配对后，便能够进行数据传输了，像网络环境的出入口
+
 
 ### 操作命令
 
@@ -71,6 +79,43 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
   - docker rm [容器名称]: 删除容器，-f强制删除选项
   - docker exec -it [容器名称] bash: 启动bash来对容器内的应用进行控制，-i表示保持我们的输入流，
   只有只用它才能保证控制台程序能够正确识别我们的命令，-t表示启用一个终端，让我们能看到bash的执行结果
+
+- 网络互联
+```
+// 使用 --link 来连通两个容器
+$ sudo docker run -d --name mysql -e MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
+$ sudo docker run -d --name webapp --link mysql webapp:latest
+
+// 这个命令可以查看网络信息，默认加入docker创建的bridge网络
+docker inspect mysql
+...
+"Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "ad384a3fc10d3172c3e9e128da2520ac5b99cfbaaa3dfdcfd509564f7eb85ba6",
+                    "EndpointID": "b93f73fd24dddc431922b6177ecbb9145cec3b906fd010dd7d3401834cee490a",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.3",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:03",
+                    "DriverOpts": null
+                }
+            }
+...
+```
+
+- docker network create -d [网络驱动类型，bridge等] [网络名称]: 创建网络，-d是用来指定网络的驱动类型
+- docker network ls: 查看已经存在的网络
+- docker run -d --name mysql -e MYSQL_RANDOM_ROOT_PASSWORD=yes **--network** individual mysql:5.7: 启动容器并加入指定的网络
+  （不同的网络的容器是不能相互连接和引用的）
+- docker run -d --name nginx -p 80:80 -p 443:443 nginx:1.12: 端口映射，可以把容器的端口映射到宿主操作系统上，这样就能供外部访问
+  端口映射的格式为`-p <ip>:<host-port>:<container-port>`，其中ip我们可以不填写，默认为0.0.0.0，监听所有网卡，
+  之后是宿主机端口映射容器端口，这样就能在外部进行访问了
 
 ### 安装流程
 ```
