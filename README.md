@@ -55,6 +55,10 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 - docker version 
 - docker info
 - docker images: 查看镜像
+- docker pull: 从镜像仓库拉取镜像，拉取之后存放在本地接受当前这个Docker实例管理
+- docker search [镜像名称]: 我们可以得到关于这个名称的镜像的列表结果
+- docker inspect [镜像名称]: 查看镜像的详细信息
+- docker rmi [镜像名称/镜像ID]: 删除镜像，名称可以传多个，用空格隔开就好
 
 ### 安装流程
 ```
