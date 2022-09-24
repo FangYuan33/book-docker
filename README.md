@@ -41,3 +41,30 @@ Docker容器内包含三项内容: 一个Docker镜像、一个程序运行环境
 4. **数据卷 Volume**
 Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作系统中，还能够建立独立的目录持久存放数据在容器间共享**。
 
+### 操作命令
+- docker version 
+- docker info
+
+### 安装流程
+```
+$ sudo yum install yum-utils device-mapper-persistent-data lvm2
+$
+$ sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+$ sudo yum install docker-ce
+$
+$ sudo systemctl enable docker
+$ sudo systemctl start docker
+```
+
+修改国内镜像仓库，编辑 `/etc/docker/daemon.json`
+>{
+"registry-mirrors": [
+"https://registry.docker-cn.com"
+]
+}
+> 
+
+重启
+> sudo systemctl daemon-reload 
+
+> sudo systemctl restart docker
