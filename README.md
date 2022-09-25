@@ -58,10 +58,22 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 2. 网络: Docker内部的虚拟子网，能够在容器间进行通讯
 3. 端点: 是位于容器或网络隔离强上的洞，当容器的端点和网络的端点形成配对后，便能够进行数据传输了，像网络环境的出入口
 
+### 5. Docker的数据管理
+为了解决容器生命周期和数据生命周期一致和容器外部难以操作容器内部文件的问题，Docker提供了三种挂载方式：
+![img_3.png](img_3.png)
+
+- **Bind Mount**: 能够直接将宿主操作系统中的目录和文件挂载到容器内的文件系统中，通过指定容器外的路径和容器内的路径，
+  就可以形成挂载映射关系，在容器内外对文件的读写，都是相互可见的
+- **Volume**: 从宿主操作系统中挂载目录到容器内，只不过这个挂载的目录由 Docker 进行管理，我们只需要指定容器内的目录，
+  不需要关心具体挂载到了宿主操作系统中的哪里
+- **Tmpfs Mount**: 支持挂载系统内存中的一部分到容器的文件系统里，不过由于内存和容器的特征，它的存储并不是持久的，
+  其中的内容会随着容器的停止而消失
+
+其中Bind Mount和Volume两种绑定方式都是通过-v参数来指定的，不过Volume挂载方式不需要传宿主机的绝对路径，由Docker统一管理
 
 ### 操作命令
 
-- 基本操作命令
+#### 1. 基本操作命令
   - docker version 
   - docker info
   - docker images: 查看镜像
@@ -70,7 +82,7 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
   - docker inspect [镜像名称]: 查看镜像的详细信息
   - docker rmi [镜像名称/镜像ID]: 删除镜像，名称可以传多个，用空格隔开就好
 
-- 启停操作命令
+#### 2. 启停操作命令
   - docker create --name [容器名称] [镜像名称]: 创建指定镜像的指定容器名的容器
   - docker start [容器名称]: 启动容器
   - docker run --name [容器名称] -d [镜像名称]: 将创建容器和启动容器合为一步，-d表示后台运行
@@ -80,7 +92,7 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
   - docker exec -it [容器名称] bash: 启动bash来对容器内的应用进行控制，-i表示保持我们的输入流，
   只有只用它才能保证控制台程序能够正确识别我们的命令，-t表示启用一个终端，让我们能看到bash的执行结果
 
-- 网络互联
+#### 3. 网络互联
 ```
 // 使用 --link 来连通两个容器
 $ sudo docker run -d --name mysql -e MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
@@ -117,6 +129,27 @@ docker inspect mysql
   端口映射的格式为`-p <ip>:<host-port>:<container-port>`，其中ip我们可以不填写，默认为0.0.0.0，监听所有网卡，
   之后是宿主机端口映射容器端口，这样就能在外部进行访问了
 
+#### 4. 文件挂载
+- docker run -d --name nginx **-v** /webapp/html:/usr/share/nginx/html nginx:1.12: 
+  使用 **-v** 或 **--volume** 来挂载宿主操作系统目录的形式是 `-v <host-path>:<container-path>` 
+  或 `--volume <host-path>:<container-path>`，其中host-path代表宿主机目录，container-path代表容器目录，
+  `docker run -d --name nginx -v /webapp/html:/usr/share/nginx/html:ro nginx:1.12`加上了:ro表示只读
+
+- docker run -d --name webapp **--tmpfs** /webapp/cache webapp:latest: 临时内存挂载，通过tmpfs来完成，
+  我们只需要写好容器内的目录就好了
+
+- docker run -d --name webapp -v /webapp/storage webapp:latest: 数据卷挂载，无需指定宿主机的目录，指定容器内的目录即可
+- docker run -d --name webapp -v appdata:/webapp/storage webapp:latest: 为数据卷命名`-v <name>:<container-path>`，
+
+共用数据卷，指定相同的数据卷名称
+- docker run -d --name webapp -v **html:**/webapp/html webapp:latest
+- docker run -d --name nginx -v **html:**/usr/share/nginx/html:ro nginx:1.12
+
+- docker volume create: 创建数据卷
+- docker volume ls: 列出已创建的数据卷
+- docker volume rm [数据卷名]: 删除数据卷
+- docker rm -v [容器名称]: 删除容器添加-v参数，来一同删除数据卷，因为不删除这个数据卷它也不能被复用
+- docker volume prune: 删除没用的数据卷
 ### 安装流程
 ```
 $ sudo yum install yum-utils device-mapper-persistent-data lvm2
