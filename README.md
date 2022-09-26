@@ -71,6 +71,12 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 
 其中Bind Mount和Volume两种绑定方式都是通过-v参数来指定的，不过Volume挂载方式不需要传宿主机的绝对路径，由Docker统一管理
 
+### 6. 操作镜像
+
+容器内所有的修改我们可以通过"提交"命令保存成新的镜像，之后我们可以使用save命令将镜像输出成tar文件，
+之后这个文件复制到其他服务器上的时候，我们可以通过load命令来导入成为新服务器上的镜像。当然如果嫌不够快，可以直接把容器
+
+
 ### 操作命令
 
 #### 1. 基本操作命令
@@ -150,6 +156,19 @@ docker inspect mysql
 - docker volume rm [数据卷名]: 删除数据卷
 - docker rm -v [容器名称]: 删除容器添加-v参数，来一同删除数据卷，因为不删除这个数据卷它也不能被复用
 - docker volume prune: 删除没用的数据卷
+
+#### 5. 操作容器
+
+- docker commit -m "remark" [镜像名称]: 提交容器的修改，提交之后我们会得到新的镜像ID，并且能在images命令下查看到，其中-m为可选提交备注
+- docker tag [镜像ID 或 老镜像名] [新的镜像名儿]: 可以使用tag能够为没有名字的镜像起名或者为镜像添加一个新的名字
+- docker commit -m "remark" webapp webapp：2.0: 把以上两条命令合成为1条命令，提交镜像并取一个新的名字
+- docker save [镜像名] > [镜像名].tar: 输出镜像
+- docker save -o ./[文件名].tar [镜像名 镜像名...]: 可以输出多个镜像到一个文件里，多个镜像名用空格隔开
+- docker load -i [文件名]: 导入文件成为镜像
+- docker export -o ./[文件名].tar [容器名]: 导出容器
+- docker import ./[文件名].tar [镜像名]: 这里导入的不是容器，是镜像，虽然是指定的容器的包，但是导入之后还是镜像
+
+---
 ### 安装流程
 ```
 $ sudo yum install yum-utils device-mapper-persistent-data lvm2
