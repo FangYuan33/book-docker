@@ -78,6 +78,80 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 
 当然也可以直接把容器导出，然后在导入成为镜像。
 
+### 7. Dockerfile
+
+- Dockerfile就很像环境搭建手册，其中包含的是一个容器构建的过程
+
+#### 7.1 FROM
+
+FROM命令用来指定基础镜像，接下来所有的指令都是基于这个镜像展开，Dockerfile的第一条指令必须是FROM
+
+```dockerfile
+FROM <image> [AS <name>]
+FROM <image>[:<tag>] [AS <name>]
+FROM <image>[@<digest>] [AS <name>]
+```
+
+#### 7.2 RUN
+RUN命令后边直接拼接要执行的命令，在构建时，Docker会执行这些命令，并将它们对文件系统的修改记录下来，形成镜像的变化
+
+```dockerfile
+RUN <command>
+RUN ["executable", "param1", "param2"]
+```
+
+RUN命令支持使用反斜线`\`来实现命令换行，方便阅读
+
+#### 7.3 ENTRYPOINT 和 CMD
+通过ENTRYPOINT 和 CMD命令在容器启动时来启动容器中进程号为1的进程
+
+```dockerfile
+ENTRYPOINT ["executable", "param1", "param2"]
+ENTRYPOINT command param1 param2
+
+CMD ["executable","param1","param2"]
+CMD ["param1","param2"]
+CMD command param1 param2
+```
+#### 7.4 EXPOSE
+通过 EXPOSE 指令就可以为镜像指定要暴露的端口
+
+```dockerfile
+EXPOSE <port> [<port>/<protocol>...]
+```
+
+#### 7.5 VOLUME
+VOLUME 指令来定义基于此镜像的容器自动建立的数据卷，不需要我们再单独使用`-v`来配置
+```dockerfile
+VOLUME ["/data"]
+```
+
+#### 7.6 COPY 和 ADD
+使用 COPY 或 ADD 指令能够从宿主机的文件系统里拷贝内容到镜像里的文件系统中
+
+```dockerfile
+COPY [--chown=<user>:<group>] <src>... <dest>
+ADD [--chown=<user>:<group>] <src>... <dest>
+
+COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]
+ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]
+```
+
+COPY 与 ADD 指令的定义方式完全一样，需要注意的仅是当我们的目录中存在空格时，可以使用后两种格式避免空格产生歧义。
+
+但是ADD支持使用URL地址作为src源，并且在源文件被识别为压缩包时，自动进行解压，但是COPY没有这个能力
+
+#### 7.7 构建镜像
+
+编写好Dockerfile，就可以构建镜像了
+
+```
+docker build -t [生成的镜像名] -f ./webapp/a.Dockerfile ./webapp
+```
+其中这个参数为一个目录路径而并非是Dockerfile的文件路径，**默认情况下会在这个目录下寻找Dockerfile文件**，另外如果Dockerfile文件
+不在这个目录下，我们可以根据`可选的配置-f`来指定Dockerfile文件的位置，其中`-t`为指定新生成的镜像名
+
+---
 ### 操作命令
 
 #### 1. 基本操作命令
