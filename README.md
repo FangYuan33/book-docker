@@ -151,6 +151,64 @@ docker build -t [生成的镜像名] -f ./webapp/a.Dockerfile ./webapp
 其中这个参数为一个目录路径而并非是Dockerfile的文件路径，**默认情况下会在这个目录下寻找Dockerfile文件**，另外如果Dockerfile文件
 不在这个目录下，我们可以根据`可选的配置-f`来指定Dockerfile文件的位置，其中`-t`为指定新生成的镜像名
 
+### 8. Dockerfile的常见用法
+
+#### 8.1 ARG
+用ARG指令来定义参数变量，在后文中用`$参数名`的形式来占位
+
+```dockerfile
+FROM debian:stretch-slim
+
+## ......
+
+ARG TOMCAT_MAJOR
+ARG TOMCAT_VERSION
+
+## ......
+
+RUN wget -O tomcat.tar.gz "https://www.apache.org/dyn/closer.cgi?action=download&filename=tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz"
+```
+构建时需要传入参数的值
+
+```shell
+docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 -t tomcat:8.0 ./tomcat
+```
+
+#### 8.2 ENV
+环境变量与ARG参数变量类似，不过环境变量是直接赋值，同样也是`$参数名`来占位取值
+```dockerfile
+FROM debian:stretch-slim
+
+## ......
+
+ENV TOMCAT_MAJOR 8
+ENV TOMCAT_VERSION 8.0.53
+
+...
+```
+在运行容器时我们也可以指定`-e`或`-env`选项来对环境变量进行修改或者添加新的环境变量。
+
+我们可以发现参数和环境变量都是采用`$参数名`来占位取值的，但是环境变量会永远覆盖ARG所定义的变量。
+
+#### 8.3 合并命令
+```dockerfile
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends $fetchDeps; \
+    rm -rf /var/lib/apt/lists/*;
+    
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends $fetchDeps
+RUN rm -rf /var/lib/apt/lists/*
+```
+为什么常见的是第一种写法呢？因为在镜像构建的过程中，Docker会在每一条能够对系统进行改动的命令执行前，先基于上条命令的结果启动一个容器，
+在容器中运行完这条指令之后，将结果打包成一个镜像层，如此反复，最终形成镜像，所以镜像是由多个镜像层叠加而来的，而每一层对应着Dockerfile中的命令。
+
+这样我们在把多条命令合并到一条中执行后，这样就减少了镜像层的数量，也减少了镜像构建过程中反复创建容器的次数，提高了镜像构建的速度。
+
+![img_4.png](img_4.png)
+
+
+
 ---
 ### 操作命令
 
