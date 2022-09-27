@@ -207,7 +207,15 @@ RUN rm -rf /var/lib/apt/lists/*
 
 ![img_4.png](img_4.png)
 
+### 9. 去Docker Hub拉取镜像，自己把它跑起来
 
+- 打开[Docker Hub](https://hub.docker.com/search?q=)
+- 搜索Mysql，进入页面后查看Tags，选择自己想要的镜像，然后把它拉(pull)下来
+- 在页面上还介绍了很多参数，避免了我们繁杂的配置，比如执行下边这条命令把它运行起来
+```shell
+## 后台运行mysql 指定root账号的密码为1234567 主机端口3307映射容器端口3306 外部访问3307即可，这样就非常快了
+ docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=1234567 -p 3307:3306 mysql:5.7.39
+```
 
 ---
 ### 操作命令
