@@ -217,6 +217,9 @@ RUN rm -rf /var/lib/apt/lists/*
  docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=1234567 -p 3307:3306 mysql:5.7.39
 ```
 
+### 10. Docker Compose
+Docker Compose 配置文件里可以包含许多内容，从每个容器的各个细节控制，到网络、数据卷等的定义，避免了繁琐的单一容器配置，改成了统一配置
+
 ---
 ### 操作命令
 
@@ -309,6 +312,13 @@ docker inspect mysql
 - docker export -o ./[文件名].tar [容器名]: 导出容器
 - docker import ./[文件名].tar [镜像名]: 这里导入的不是容器，是镜像，虽然是指定的容器的包，但是导入之后还是镜像
 
+#### 6. Docker Compose
+
+- docker-compose -f ./compose/docker-compose.yml -p myapp up -d: 启动，-f指定配置文件位置，
+  不指定时会在当前目录下搜索`docker-compose.yml` 文件，-p指定项目名，-d后台运行
+
+- docker-compose down: 停止所有容器
+- docker-compose logs [容器名字]: 查看日志
 ---
 ### 安装流程
 ```
@@ -333,3 +343,43 @@ $ sudo systemctl start docker
 > sudo systemctl daemon-reload 
 
 > sudo systemctl restart docker
+
+### 安装Docker Compose
+
+```shell
+curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+chmod +x /usr/local/bin/docker-compose
+
+docker-compose version
+```
+
+- `docker-compose.yml` 配置文件
+
+```yaml
+version: '3'
+
+services:
+
+  webapp:
+    build: ./image/webapp
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./code:/code
+      - logvolume:/var/log
+    links:
+      - mysql
+      - redis
+
+  redis:
+    image: redis:3.2
+  
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+
+volumes:
+  logvolume: {}
+```
