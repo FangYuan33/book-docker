@@ -288,7 +288,7 @@ docker inspect mysql
 - docker run -d --name webapp **--tmpfs** /webapp/cache webapp:latest: 临时内存挂载，通过tmpfs来完成，
   我们只需要写好容器内的目录就好了
 
-- docker run -d --name webapp -v /webapp/storage webapp:latest: 数据卷挂载，无需指定宿主机的目录，指定容器内的目录即可
+- docker run -d --name webapp -v /webapp/storage webapp:latest: **数据卷挂载**，无需指定宿主机的目录，指定容器内的目录即可
 - docker run -d --name webapp -v appdata:/webapp/storage webapp:latest: 为数据卷命名`-v <name>:<container-path>`，
 
 共用数据卷，指定相同的数据卷名称
