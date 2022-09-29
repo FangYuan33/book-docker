@@ -344,6 +344,8 @@ $ sudo systemctl start docker
 
 > sudo systemctl restart docker
 
+---
+
 ### 安装Docker Compose
 
 ```shell
