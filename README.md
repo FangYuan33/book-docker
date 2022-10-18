@@ -8,7 +8,7 @@ Docker 的实现，主要归结于三大技术：命名空间 ( Namespaces ) 、
 
 2. **Control Groups**
 主要做的是硬件资源的隔离和分配，通过CGroups我们可以指定任意一个环境对任意资源的占用率，对于很多分布式使用场景来说很有用
-![img.png](img.png)
+![img.png](images/img.png)
 
 3. **Union File System**
 Docker提供了对联合文件系统（Union File System）的改进，AUFS。它能将文件的更新挂载到老的文件之上，
@@ -16,14 +16,14 @@ Docker提供了对联合文件系统（Union File System）的改进，AUFS。�
 
 Docker推崇轻量级容器的结构，即：一个应用一个容器，这样也方便跟踪不同应用的生命周期。当然我们可以在一个容器中运行多个程序，但是这虽然能体现我们动手能力很强，
 但是这却违背了使用Docker来提升效率的初衷，如下为官方提供的容器架构图。
-![img_1.png](img_1.png)
+![img_1.png](images/img_1.png)
 
 ### 2. Docker的四大组成对象
 
 1. **镜像 Image**
 所谓镜像，可以理解为一个只读的文件包，其中包含了**虚拟环境运行最原始文件系统的内容**。Docker创新的利用了AUFS作为底层文件系统实现，
 通过这种方式实现增量式的镜像结构，如下图。
-![img_2.png](img_2.png)
+![img_2.png](images/img_2.png)
 每次对镜像内容的修改，Docker 都会将这些修改铸造成一个镜像层，而一个镜像其实就是由其下层所有的镜像层所组成的。
 当然，每一个镜像层单独拿出来，与它之下的镜像层都可以组成一个镜像。也由于这种结构，Docker 的镜像实质上是无法被修改的，
 因为所有对镜像的修改只会产生新的镜像，而不是更新原有的镜像。
@@ -60,7 +60,7 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 
 ### 5. Docker的数据管理
 为了解决容器生命周期和数据生命周期一致和容器外部难以操作容器内部文件的问题，Docker提供了三种挂载方式：
-![img_3.png](img_3.png)
+![img_3.png](images/img_3.png)
 
 - **Bind Mount**: 能够直接将宿主操作系统中的目录和文件挂载到容器内的文件系统中，通过指定容器外的路径和容器内的路径，
   就可以形成挂载映射关系，在容器内外对文件的读写，都是相互可见的
@@ -71,6 +71,156 @@ Docker通过数据卷来实现文件的存放，**不仅仅保存在宿主操作
 
 其中Bind Mount和Volume两种绑定方式都是通过-v参数来指定的，不过Volume挂载方式不需要传宿主机的绝对路径，由Docker统一管理
 
+### 6. 操作镜像
+
+容器内所有的修改我们可以通过"提交"命令保存成新的镜像，之后我们可以使用save命令将镜像输出成tar文件，
+之后这个文件复制到其他服务器上的时候，我们可以通过load命令来导入成为新服务器上的镜像。
+
+当然也可以直接把容器导出，然后在导入成为镜像。
+
+### 7. Dockerfile
+
+- Dockerfile就很像环境搭建手册，其中包含的是一个容器构建的过程
+
+#### 7.1 FROM
+
+FROM命令用来指定基础镜像，接下来所有的指令都是基于这个镜像展开，Dockerfile的第一条指令必须是FROM
+
+```dockerfile
+FROM <image> [AS <name>]
+FROM <image>[:<tag>] [AS <name>]
+FROM <image>[@<digest>] [AS <name>]
+```
+
+#### 7.2 RUN
+RUN命令后边直接拼接要执行的命令，在构建时，Docker会执行这些命令，并将它们对文件系统的修改记录下来，形成镜像的变化
+
+```dockerfile
+RUN <command>
+RUN ["executable", "param1", "param2"]
+```
+
+RUN命令支持使用反斜线`\`来实现命令换行，方便阅读
+
+#### 7.3 ENTRYPOINT 和 CMD
+通过ENTRYPOINT 和 CMD命令在容器启动时来启动容器中进程号为1的进程
+
+```dockerfile
+ENTRYPOINT ["executable", "param1", "param2"]
+ENTRYPOINT command param1 param2
+
+CMD ["executable","param1","param2"]
+CMD ["param1","param2"]
+CMD command param1 param2
+```
+#### 7.4 EXPOSE
+通过 EXPOSE 指令就可以为镜像指定要暴露的端口
+
+```dockerfile
+EXPOSE <port> [<port>/<protocol>...]
+```
+
+#### 7.5 VOLUME
+VOLUME 指令来定义基于此镜像的容器自动建立的数据卷，不需要我们再单独使用`-v`来配置
+```dockerfile
+VOLUME ["/data"]
+```
+
+#### 7.6 COPY 和 ADD
+使用 COPY 或 ADD 指令能够从宿主机的文件系统里拷贝内容到镜像里的文件系统中
+
+```dockerfile
+COPY [--chown=<user>:<group>] <src>... <dest>
+ADD [--chown=<user>:<group>] <src>... <dest>
+
+COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]
+ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]
+```
+
+COPY 与 ADD 指令的定义方式完全一样，需要注意的仅是当我们的目录中存在空格时，可以使用后两种格式避免空格产生歧义。
+
+但是ADD支持使用URL地址作为src源，并且在源文件被识别为压缩包时，自动进行解压，但是COPY没有这个能力
+
+#### 7.7 构建镜像
+
+编写好Dockerfile，就可以构建镜像了
+
+```
+docker build -t [生成的镜像名] -f ./webapp/a.Dockerfile ./webapp
+```
+其中这个参数为一个目录路径而并非是Dockerfile的文件路径，**默认情况下会在这个目录下寻找Dockerfile文件**，另外如果Dockerfile文件
+不在这个目录下，我们可以根据`可选的配置-f`来指定Dockerfile文件的位置，其中`-t`为指定新生成的镜像名
+
+### 8. Dockerfile的常见用法
+
+#### 8.1 ARG
+用ARG指令来定义参数变量，在后文中用`$参数名`的形式来占位
+
+```dockerfile
+FROM debian:stretch-slim
+
+## ......
+
+ARG TOMCAT_MAJOR
+ARG TOMCAT_VERSION
+
+## ......
+
+RUN wget -O tomcat.tar.gz "https://www.apache.org/dyn/closer.cgi?action=download&filename=tomcat/tomcat-$TOMCAT_MAJOR/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz"
+```
+构建时需要传入参数的值
+
+```shell
+docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 -t tomcat:8.0 ./tomcat
+```
+
+#### 8.2 ENV
+环境变量与ARG参数变量类似，不过环境变量是直接赋值，同样也是`$参数名`来占位取值
+```dockerfile
+FROM debian:stretch-slim
+
+## ......
+
+ENV TOMCAT_MAJOR 8
+ENV TOMCAT_VERSION 8.0.53
+
+...
+```
+在运行容器时我们也可以指定`-e`或`-env`选项来对环境变量进行修改或者添加新的环境变量。
+
+我们可以发现参数和环境变量都是采用`$参数名`来占位取值的，但是环境变量会永远覆盖ARG所定义的变量。
+
+#### 8.3 合并命令
+```dockerfile
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends $fetchDeps; \
+    rm -rf /var/lib/apt/lists/*;
+    
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends $fetchDeps
+RUN rm -rf /var/lib/apt/lists/*
+```
+为什么常见的是第一种写法呢？因为在镜像构建的过程中，Docker会在每一条能够对系统进行改动的命令执行前，先基于上条命令的结果启动一个容器，
+在容器中运行完这条指令之后，将结果打包成一个镜像层，如此反复，最终形成镜像，所以镜像是由多个镜像层叠加而来的，而每一层对应着Dockerfile中的命令。
+
+这样我们在把多条命令合并到一条中执行后，这样就减少了镜像层的数量，也减少了镜像构建过程中反复创建容器的次数，提高了镜像构建的速度。
+
+![img_4.png](images/img_4.png)
+
+### 9. 去Docker Hub拉取镜像，自己把它跑起来
+
+- 打开[Docker Hub](https://hub.docker.com/search?q=)
+- 搜索Mysql，进入页面后查看Tags，选择自己想要的镜像，然后把它拉(pull)下来
+- 在页面上还介绍了很多参数，避免了我们繁杂的配置，比如执行下边这条命令把它运行起来
+```shell
+## 后台运行mysql 指定root账号的密码为1234567 主机端口3307映射容器端口3306 外部访问3307即可，这样就非常快了
+ docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=1234567 -p 3307:3306 mysql:5.7.39
+```
+
+### 10. Docker Compose
+Docker Compose 配置文件里可以包含许多内容，从每个容器的各个细节控制，到网络、数据卷等的定义，避免了繁琐的单一容器配置，改成了统一配置
+
+---
 ### 操作命令
 
 #### 1. 基本操作命令
@@ -138,7 +288,7 @@ docker inspect mysql
 - docker run -d --name webapp **--tmpfs** /webapp/cache webapp:latest: 临时内存挂载，通过tmpfs来完成，
   我们只需要写好容器内的目录就好了
 
-- docker run -d --name webapp -v /webapp/storage webapp:latest: 数据卷挂载，无需指定宿主机的目录，指定容器内的目录即可
+- docker run -d --name webapp -v /webapp/storage webapp:latest: **数据卷挂载**，无需指定宿主机的目录，指定容器内的目录即可
 - docker run -d --name webapp -v appdata:/webapp/storage webapp:latest: 为数据卷命名`-v <name>:<container-path>`，
 
 共用数据卷，指定相同的数据卷名称
@@ -150,7 +300,27 @@ docker inspect mysql
 - docker volume rm [数据卷名]: 删除数据卷
 - docker rm -v [容器名称]: 删除容器添加-v参数，来一同删除数据卷，因为不删除这个数据卷它也不能被复用
 - docker volume prune: 删除没用的数据卷
-### 5. Docker 启动过的容器服务
+
+#### 5. 操作容器
+
+- docker commit -m "remark" [镜像名称]: 提交容器的修改，提交之后我们会得到新的镜像ID，并且能在images命令下查看到，其中-m为可选提交备注
+- docker tag [镜像ID 或 老镜像名] [新的镜像名儿]: 可以使用tag能够为没有名字的镜像起名或者为镜像添加一个新的名字
+- docker commit -m "remark" webapp webapp：2.0: 把以上两条命令合成为1条命令，提交镜像并取一个新的名字
+- docker save [镜像名] > [镜像名].tar: 输出镜像
+- docker save -o ./[文件名].tar [镜像名 镜像名...]: 可以输出多个镜像到一个文件里，多个镜像名用空格隔开
+- docker load -i [文件名]: 导入文件成为镜像
+- docker export -o ./[文件名].tar [容器名]: 导出容器
+- docker import ./[文件名].tar [镜像名]: 这里导入的不是容器，是镜像，虽然是指定的容器的包，但是导入之后还是镜像
+
+#### 6. Docker Compose
+
+- docker-compose -f ./compose/docker-compose.yml -p myapp up -d: 启动，-f指定配置文件位置，
+  不指定时会在当前目录下搜索`docker-compose.yml` 文件，-p指定项目名，-d后台运行
+
+- docker-compose down: 停止所有容器
+- docker-compose logs [容器名字]: 查看日志
+---
+### 7. Docker 启动过的容器服务
 - Seata
 ```shell
 # -e SEATA_IP 指定IP供外部连接 -v 挂在服务器配置文件目录到容器目录
@@ -185,3 +355,78 @@ $ sudo systemctl start docker
 > sudo systemctl daemon-reload 
 
 > sudo systemctl restart docker
+
+---
+
+### 安装Docker Compose
+
+```shell
+curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+chmod +x /usr/local/bin/docker-compose
+
+docker-compose version
+```
+
+- `docker-compose.yml` 配置文件
+
+```yaml
+version: "3"
+
+services:
+
+  redis:
+    image: redis:3.2
+    networks:
+      - backend
+    volumes:
+      - ./redis/redis.conf:/etc/redis.conf:ro
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "/etc/redis.conf"]
+
+  database:
+    image: mysql:5.7
+    networks:
+      - backend
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/my.cnf:ro
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+    ports:
+      - "3306:3306"
+
+  webapp:
+    build: ./webapp
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - ./webapp:/webapp
+    depends_on:
+      - redis
+      - database
+
+  nginx:
+    image: nginx:1.12
+    networks:
+      - frontend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./webapp/html:/webapp/html
+    depends_on:
+      - webapp
+    ports:
+      - "80:80"
+      - "443:443"
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  mysql-data:
+```
+Docker Compose 为我们启动项目的时候，会检查所有依赖，depends_on 这个配置项，形成正确的启动顺序并按这个顺序来依次启动容器
