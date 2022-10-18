@@ -319,7 +319,7 @@ docker inspect mysql
 
 - docker-compose down: 停止所有容器
 - docker-compose logs [容器名字]: 查看日志
----
+
 ### 7. Docker 启动过的容器服务
 - Seata
 ```shell
@@ -331,6 +331,8 @@ docker run --name seata-server -d \
         -v /root/seata-config:/root/seata-config  \
         seataio/seata-server:1.4.2
 ```
+
+---
 
 ### 安装流程
 ```
