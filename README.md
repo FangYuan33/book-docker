@@ -150,6 +150,18 @@ docker inspect mysql
 - docker volume rm [数据卷名]: 删除数据卷
 - docker rm -v [容器名称]: 删除容器添加-v参数，来一同删除数据卷，因为不删除这个数据卷它也不能被复用
 - docker volume prune: 删除没用的数据卷
+### 5. Docker 启动过的容器服务
+- Seata
+```shell
+# -e SEATA_IP 指定IP供外部连接 -v 挂在服务器配置文件目录到容器目录
+docker run --name seata-server -d \
+        -p 8091:8091 \
+        -e SEATA_CONFIG_NAME=file:/root/seata-config/registry \
+        -e SEATA_IP=xxx.xx.xx.xxx \
+        -v /root/seata-config:/root/seata-config  \
+        seataio/seata-server:1.4.2
+```
+
 ### 安装流程
 ```
 $ sudo yum install yum-utils device-mapper-persistent-data lvm2
