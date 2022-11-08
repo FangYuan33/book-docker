@@ -363,6 +363,10 @@ docker run
 nacos/nacos-server
 ```
 
+- Zipkin
+```shell
+docker run --name zipkin -d -p 9411:9411 openzipkin/zipkin
+```
 ---
 
 ### 安装流程
