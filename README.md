@@ -363,6 +363,12 @@ docker run
 nacos/nacos-server
 ```
 
+- zookeeper
+```shell
+# the zookeeper client port, follower port, election port, AdminServer port respectively
+docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 -p 8080:8080  --restart always -d zookeeper
+```
+
 - Zipkin
 ```shell
 docker run --name zipkin -d -p 9411:9411 openzipkin/zipkin
