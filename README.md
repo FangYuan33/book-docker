@@ -372,6 +372,60 @@ docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 -p 8080:8080 
 docker exec -it zookeeper bash
 ./bin/zkCli.sh
 ```
+- zookeeper 集群
+
+`zookeeper-compose.yml`文件
+```yaml
+version: '3.1'
+
+services:
+  zoo1:
+    image: zookeeper:latest
+    restart: always
+    hostname: zoo1
+    networks:
+      - zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+  zoo2:
+    image: zookeeper:latest
+    restart: always
+    hostname: zoo2
+    networks:
+      - zookeeper
+    ports:
+      - 2182:2181
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+  zoo3:
+    image: zookeeper:latest
+    restart: always
+    hostname: zoo3
+    networks:
+      - zookeeper
+    ports:
+      - 2183:2181
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+networks:
+  zookeeper:
+    external: true
+```
+执行命令
+```shell
+# 创建网络
+docker network create zookeeper
+# 
+docker-compose -f zookeeper-compose.yml -p zookeeper up -d
+```
 
 - Zipkin
 ```shell
