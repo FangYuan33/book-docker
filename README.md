@@ -348,8 +348,9 @@ docker run --name seata-server -d \
 - Nacos
 ```shell
 docker pull nacos/nacos-server
-mkdir -p /root/apply/docker/apply/nacos/logs/
-mkdir -p /root/apply/docker/apply/nacos/init.d/
+mkdir -p /usr/dream/nacos/logs/
+mkdir -p /usr/dream/nacos/init.d/
+mkdir -p /usr/dream/nacos/data/
 
 docker run 
 --name nacos -d 
@@ -371,9 +372,9 @@ docker run
 -e MYSQL_SERVICE_USER=root 
 -e MYSQL_SERVICE_PASSWORD=root
 # 挂载服务器目录到容器内
--v /root/apply/docker/apply/nacos/logs:/home/nacos/logs 
--v /root/apply/docker/apply/nacos/init.d/custom.properties:/etc/nacos/init.d/custom.properties 
--v /root/apply/docker/apply/nacos/data:/home/nacos/data 
+-v /usr/dream/nacos/nacos/logs:/home/nacos/logs 
+-v /usr/dream/nacos/init.d/custom.properties:/etc/nacos/init.d/custom.properties 
+-v /usr/dream/nacos/data:/home/nacos/data 
 nacos/nacos-server
 ```
 
