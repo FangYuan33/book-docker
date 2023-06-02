@@ -375,7 +375,7 @@ docker run
 -v /usr/dream/nacos/nacos/logs:/home/nacos/logs 
 -v /usr/dream/nacos/init.d/custom.properties:/etc/nacos/init.d/custom.properties 
 -v /usr/dream/nacos/data:/home/nacos/data 
-nacos/nacos-server
+nacos/nacos-server:v2.0.4
 ```
 
 - zookeeper
