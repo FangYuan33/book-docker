@@ -321,6 +321,18 @@ docker inspect mysql
 - docker-compose logs [容器名字]: 查看日志
 
 ### 7. Docker 启动过的容器服务
+
+- Redis
+
+```shell
+# 创建对应的本地目录/usr/dream/redis/*
+docker run --name redis 
+            -p 6379:6379 
+            -v /usr/dream/redis/conf/redis.conf:/etc/redis/redis.conf  
+            -v /usr/dream/redis/data:/data 
+            -d redis:6.2.12 redis-server /etc/redis/redis.conf
+```
+
 - Seata
 ```shell
 # -e SEATA_IP 指定IP供外部连接 -v 挂载服务器配置文件目录到容器目录
