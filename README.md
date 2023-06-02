@@ -338,11 +338,11 @@ docker run --name redis
 - Seata
 ```shell
 # -e SEATA_IP 指定IP供外部连接 -v 挂载服务器配置文件目录到容器目录
-docker run --name seata-server -d \
-        -p 8091:8091 \
-        -e SEATA_CONFIG_NAME=file:/root/seata-config/registry \
-        -e SEATA_IP=xxx.xx.xx.xxx \
-        -v /root/seata-config:/root/seata-config  \
+docker run --name seata -d
+        -p 8091:8091
+        -e SEATA_CONFIG_NAME=file:/root/seata-config/registry
+        -e SEATA_IP=xxx.xx.xx.xxx
+        -v /usr/dream/seata/seata-config:/root/seata-config
         seataio/seata-server:1.4.2
 ```
 - Nacos
@@ -351,6 +351,7 @@ docker pull nacos/nacos-server
 mkdir -p /root/apply/docker/apply/nacos/logs/
 mkdir -p /root/apply/docker/apply/nacos/init.d/
 
+# -v 挂载服务器目录到容器内
 docker run 
 --name nacos -d 
 -p 8848:8848 
@@ -370,7 +371,6 @@ docker run
 -e MYSQL_SERVICE_DB_NAME=nacos_config
 -e MYSQL_SERVICE_USER=root 
 -e MYSQL_SERVICE_PASSWORD=root
-# 挂载服务器目录到容器内
 -v /root/apply/docker/apply/nacos/logs:/home/nacos/logs 
 -v /root/apply/docker/apply/nacos/init.d/custom.properties:/etc/nacos/init.d/custom.properties 
 -v /root/apply/docker/apply/nacos/data:/home/nacos/data 
