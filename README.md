@@ -322,6 +322,8 @@ docker inspect mysql
 
 ### 7. Docker 启动过的容器服务
 
+需要挂载自定义配置文件的去 `conf` 查看、获取对应的配置文件
+
 - Redis
 
 ```shell
